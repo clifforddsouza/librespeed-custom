@@ -1,99 +1,72 @@
-![LibreSpeed Logo](https://github.com/librespeed/speedtest/blob/master/.logo/logo3.png?raw=true)
+LibreSpeed (Custom Fork)
 
-# LibreSpeed
+This is a custom fork of the LibreSpeed speed test project, enhanced with WebSocket-based packet loss measurement, tailored for browser-based testing in NAT environments like ISP-level CGNAT setups.
 
-No Flash, No Java, No Websocket, No Bullshit.
+✨ Custom Features Added
 
-This is a very lightweight speed test implemented in Javascript, using XMLHttpRequest and Web Workers.
+✅ Packet Loss Detection via WebSockets
 
-## Try it
+✅ Ping/Jitter Calculations
 
-[Take a speed test](https://librespeed.org)
+✅ Automatic Packet Loss Logging to MySQL
 
-## Compatibility
+✅ Integrated into Existing LibreSpeed UI and Telemetry
 
-All modern browsers are supported: IE11, latest Edge, latest Chrome, latest Firefox, latest Safari.
-Works with mobile versions too.
+💡 Use Case
 
-## Features
+This fork is designed for ISPs needing to measure:
 
-* Download
-* Upload
-* Ping
-* Jitter
-* IP Address, ISP, distance from server (optional)
-* Telemetry (optional)
-* Results sharing (optional)
-* Multiple Points of Test (optional)
+Download & Upload Speeds
 
-![Screenrecording of a running Speedtest](https://speedtest.fdossena.com/mpot_v6.gif)
+Latency (Ping)
 
-## Server requirements
+Jitter
 
-* A reasonably fast web server with Apache 2 (nginx, IIS also supported)
-* PHP 5.4 or newer (other backends also available)
-* MariaDB or MySQL database to store test results (optional, Microsoft SQL Server, PostgreSQL and SQLite also supported)
-* A fast! internet connection
+Packet Loss
 
-## Installation
+...directly in customer browsers without deploying any software agents.
 
-Assuming you have PHP and a web server installed, the installation steps are quite simple.
+📁 Directory Overview
 
-1. Download the source code and extract it
-1. Copy the following files to your web server's shared folder (ie. /var/www/html/speedtest for Apache): index.html, speedtest.js, speedtest_worker.js, favicon.ico and the backend folder
-1. Optionally, copy the results folder too, and set up the database using the config file in it.
-1. Be sure your permissions allow execute (755).
-1. Visit YOURSITE/speedtest/index.html and voila!
+speedtest_worker.js → WebSocket logic for packet loss + test execution.
 
-### Installation Video
+speedtest.js → Main frontend logic (updated to show loss).
 
-This video shows the installation process of a standalone LibreSpeed server: [Quick start installation guide for Debian 12](https://fdossena.com/?p=speedtest/quickstart_deb12.frag)
+results/telemetry.php → Accepts packet loss via POST.
 
-More videos will be added later.
+results/telemetry_db.php → Writes loss to packet_loss column.
 
-## Android app
+index.html* → UI variants for testing.
 
-A template to build an Android client for your LibreSpeed installation is available [here](https://github.com/librespeed/speedtest-android).
+🚀 Setup Instructions
 
-## CLI client
+Clone this repo
 
-A command line client is available [here](https://github.com/librespeed/speedtest-cli).
+Ensure Dependencies
 
-## Docker
+PHP with MySQL
 
-A docker image is available on [GitHub](https://github.com/librespeed/speedtest/pkgs/container/speedtest), check our [docker documentation](doc_docker.md) for more info about it.
-The image is built every week to include an updated version of the ipinfo-DB used for ISP detection. Also this ensures, that the latest security patches in PHP are installed. Therefore we recommend to use the `latest` image.
+Apache/Nginx
 
-## Go backend
+ws Node.js WebSocket server for packet loss
 
-A Go implementation is available in the [`speedtest-go`](https://github.com/librespeed/speedtest-go) repo, maintained by [Maddie Zhan](https://github.com/maddie).
+Configure WebSocket Server
 
-## Rust backend
+Database Setup
+Ensure the speedtest_users table includes this column:
 
-A Rust implementation is available in the [`speedtest-rust`](https://github.com/librespeed/speedtest-rust) repo, maintained by [Sudo Dios](https://github.com/sudodios).
+Access Web UI
+Visit http://your-server-ip/index.html to run the test and store results.
 
-## Node.js backend
+📊 Output Example
 
-A partial Node.js implementation is available in the `node` branch, developed by [dunklesToast](https://github.com/dunklesToast). It's not recommended to use at the moment.
+⚡ Contributors
 
-## Donate
+@clifforddsouza — Packet loss integration
 
-[![Donate with Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/fdossena/donate)
-[Donate with PayPal](https://www.paypal.me/sineisochronic)
+✉ Feedback / Issues
 
-## License
+Open an issue or fork it further.
 
-Copyright (C) 2016-2024 Federico Dossena
+❤️ This project extends LibreSpeed for real-world, ISP-grade network quality monitoring.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
