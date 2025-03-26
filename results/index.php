@@ -1,5 +1,25 @@
 <?php
 
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/log/php_errors.log');
+
+error_log("=== STARTING index.php ===");
+
+echo "Step 1: Script started.<br>";
+error_log("Step 1: Script started.");
+
+// If there is a database connection, add this before connecting
+echo "Step 2: Before database connection.<br>";
+error_log("Step 2: Before database connection.");
+
+// Generate a test error inside LibreSpeed
+//trigger_error("Test error inside LibreSpeed results page", E_USER_ERROR);
+
+
 require_once 'telemetry_db.php';
 
 error_reporting(0);

@@ -446,7 +446,34 @@ function initUI(){
 				<div class="unit">ms</div>
 			</div>
 		</div>
-		<div class="testGroup">
+		<!-- ADD PACKET LOSS RIGHT HERE -->
+<!-- ==============================
+     PACKET LOSS SECTION (Corrected Spacing)
+     ============================== -->
+<div class="testGroup" style="margin-bottom: 0.5em;">  <!-- Small margin before next group -->
+  <div class="testArea2" style="margin-bottom: 0;">
+    <!-- Packet Loss Header -->
+    <div class="testName">Packet Loss</div>
+    <!-- Packet Loss Percentage -->
+    <div id="packetLossText" 
+         class="meterText" 
+         style="color: #AA6060; margin-bottom: 0.1em;"> 
+    0.00
+    </div>
+    <div class="unit">%</div>
+  </div>
+
+<div id="packetLossDetails" style="margin-top: -2.5em !important;">
+  Packets Sent = <span id="packetsSent">0</span>,
+  Received = <span id="packetsReceived">0</span>,
+  Lost = <span id="packetsLost">0</span>
+  (<span id="packetLoss">0.00%</span>)
+</div>
+</div>
+</div>		
+
+
+	<div class="testGroup" style="margin-top: 5em !important;">
 			<div class="testArea">
 				<div class="testName">Download</div>
 				<canvas id="dlMeter" class="meter"></canvas>

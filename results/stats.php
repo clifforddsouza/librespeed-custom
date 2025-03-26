@@ -2,6 +2,13 @@
 session_start();
 error_reporting(0);
 
+date_default_timezone_set("Asia/Kolkata"); // ✅ Set timezone to IST
+
+require 'telemetry_settings.php';
+require_once 'telemetry_db.php';
+session_start();
+error_reporting(0);
+
 require 'telemetry_settings.php';
 require_once 'telemetry_db.php';
 
@@ -93,7 +100,7 @@ header('Pragma: no-cache');
                         $speedtests = [$speedtest];
                     }
                 } else {
-                    $speedtests = getLatestSpeedtestUsers();
+			$speedtests = getLatestSpeedtestUsers();
                     if (false === $speedtests) {
                         echo '<div>There was an error trying to fetch latest test results.</div>';
                     } elseif (empty($speedtests)) {
@@ -102,7 +109,7 @@ header('Pragma: no-cache');
                 }
                 foreach ($speedtests as $speedtest) {
                     ?>
-                    <table>
+	    <table>
                         <tr>
                             <th>Test ID</th>
                             <td><?= htmlspecialchars($speedtest['id_formatted'], ENT_HTML5, 'UTF-8') ?></td>
@@ -141,6 +148,11 @@ header('Pragma: no-cache');
                             <td><?= htmlspecialchars($speedtest['jitter'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
                         <tr>
+                            <th>Packet Loss</th>
+			   
+		         <td><?= htmlspecialchars($speedtest['packet_loss'] ?? "N/A", ENT_HTML5, 'UTF-8') ?>%</td>
+			</tr>
+                        <tr>
                             <th>Log</th>
                             <td><?= htmlspecialchars($speedtest['log'], ENT_HTML5, 'UTF-8') ?></td>
                         </tr>
@@ -167,3 +179,4 @@ header('Pragma: no-cache');
         ?>
     </body>
 </html>
+

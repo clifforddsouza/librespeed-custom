@@ -2,34 +2,53 @@
 
 // Type of db: "mssql", "mysql", "sqlite" or "postgresql"
 $db_type = 'mysql';
+
 // Password to login to stats.php. Change this!!!
-$stats_password = 'PASSWORD';
+$stats_password = 'librespeed';
+
 // If set to true, test IDs will be obfuscated to prevent users from guessing URLs of other tests
 $enable_id_obfuscation = false;
+
 // If set to true, IP addresses will be redacted from IP and ISP info fields, as well as the log
 $redact_ip_addresses = false;
 
 // Sqlite3 settings
 $Sqlite_db_file = '../../speedtest_telemetry.sql';
 
-// mssql settings
-$MsSql_server = 'DB_HOSTNAME';
-$MsSql_databasename = 'DB_NAME';
-$MsSql_WindowsAuthentication = true;   //true or false
-$MsSql_username = 'USERNAME';          //not used if MsSql_WindowsAuthentication is true
-$MsSql_password = 'PASSWORD';          //not used if MsSql_WindowsAuthentication is true
-$MsSql_TrustServerCertificate = true;  //true, false or comment out for driver default
-//Download driver from https://docs.microsoft.com/en-us/sql/connect/php/download-drivers-php-sql-server?view=sql-server-ver16
+// MySQL Database Credentials
+$MySql_username = 'librespeed';
+$MySql_password = 'libresp33d';
+$MySql_hostname = 'localhost';
+$MySql_databasename = 'librespeed';
+$MySql_port = 3306; // Ensure it's an integer
 
-// Mysql settings
-$MySql_username = 'USERNAME';
-$MySql_password = 'PASSWORD';
-$MySql_hostname = 'DB_HOSTNAME';
-$MySql_databasename = 'DB_NAME';
-$MySql_port = '3306';
+// Assign correct MySQL credentials to expected variables
+$database_host = $MySql_hostname;
+$database_user = $MySql_username;
+$database_password = $MySql_password;
+$database_name = $MySql_databasename;
+$database_port = $MySql_port;
 
-// Postgresql settings
-$PostgreSql_username = 'USERNAME';
-$PostgreSql_password = 'PASSWORD';
-$PostgreSql_hostname = 'DB_HOSTNAME';
-$PostgreSql_databasename = 'DB_NAME';
+error_log("Step 2: Before database connection.");
+//echo "Step 2: Before database connection.<br>";
+
+// Connect to MySQL
+$conn = new mysqli($database_host, $database_user, $database_password, $database_name, $database_port);
+
+if ($conn->connect_error) {
+   error_log("Database Connection Failed: " . $conn->connect_error);
+   die("Database Connection Failed: " . $conn->connect_error);
+}
+
+error_log("Step 3: Database connected successfully.");
+//echo "Step 3: Database connected successfully.<br>";
+
+// Debugging Output
+error_log("Checking MySQL variables:");
+error_log("database_host: " . ($database_host ?? 'NOT SET'));
+error_log("database_user: " . ($database_user ?? 'NOT SET'));
+error_log("database_password: " . ($database_password ?? 'NOT SET'));
+error_log("database_name: " . ($database_name ?? 'NOT SET'));
+
+?>
+

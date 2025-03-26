@@ -1,3 +1,8 @@
+console.log("Speedtest Worker is running!");
+//postMessage("Worker started execution");
+postMessage(JSON.stringify({ message: "Worker started execution" }));
+
+
 /*
 	LibreSpeed - Worker
 	by Federico Dossena
@@ -11,6 +16,7 @@ let dlStatus = ""; // download speed in megabit/s with 2 decimal digits
 let ulStatus = ""; // upload speed in megabit/s with 2 decimal digits
 let pingStatus = ""; // ping in milliseconds with 2 decimal digits
 let jitterStatus = ""; // jitter in milliseconds with 2 decimal digits
+let packetLossStatus = "0";
 let clientIp = ""; // client's IP address as reported by getIP.php
 let dlProgress = 0; //progress of download test 0-1
 let ulProgress = 0; //progress of upload test 0-1
@@ -38,7 +44,7 @@ function twarn(s) {
 // test settings. can be overridden by sending specific values with the start command
 let settings = {
 	mpot: false, //set to true when in MPOT mode
-	test_order: "IP_D_U", //order in which tests will be performed as a string. D=Download, U=Upload, P=Ping+Jitter, I=IP, _=1 second delay
+	test_order: "IP_D_U_L", //order in which tests will be performed as a string. D=Download, U=Upload, P=Ping+Jitter, I=IP, _=1 second delay
 	time_ul_max: 15, // max duration of upload test in seconds
 	time_dl_max: 15, // max duration of download test in seconds
 	time_auto: true, // if set to true, tests will take less time on faster connections
@@ -99,6 +105,7 @@ this.addEventListener("message", function(e) {
 				pingStatus: pingStatus,
 				clientIp: clientIp,
 				jitterStatus: jitterStatus,
+				packetLossStatus: packetLossStatus, // ✅ Added packet loss
 				dlProgress: dlProgress,
 				ulProgress: ulProgress,
 				pingProgress: pingProgress,
@@ -169,6 +176,115 @@ this.addEventListener("message", function(e) {
 		} catch (e) {
 			twarn("Possible error in custom test settings. Some settings might not have been applied. Exception: " + e);
 		}
+
+
+// ✅ Step 1: Define Packet Loss Test at the top
+self.packetLossTest = function packetLossTest(done) {
+
+    let ws = new WebSocket("ws://192.168.8.128:8080");
+    let packetsSent = 0;
+    let packetsReceived = 0;
+    let totalPackets = 100; // Number of packets to send
+
+    ws.onopen = () => {
+        console.log("✅ WebSocket Connected! Sending packets...");
+
+        let interval = setInterval(() => {
+            if (packetsSent < totalPackets) {
+                let message = "ping-" + packetsSent;
+                console.log(`📤 Sending Packet: ${message}`);
+                ws.send(message);
+                packetsSent++;
+            } else {
+                clearInterval(interval);
+                
+		setTimeout(() => {
+   		 let packetLoss = ((packetsSent - packetsReceived) / packetsSent) * 100;
+
+    // ✅ Debug Log: Confirming data before sending
+   		 console.log(`📤 Sending to speedtest.js → Sent: ${packetsSent}, Received: ${packetsReceived}, Lost: ${packetsSent - packetsReceived} (${packetLoss.toFixed(2)}%)`);
+
+    // ✅ Send packet loss data to speedtest.js
+
+
+// ✅ Debugging: Log all calculated values before sending
+//console.log("📤 Preparing to send results to speedtest.js:");
+//console.log(`   ➤ Ping: ${pingStatus}`);
+//console.log(`   ➤ Jitter: ${jitterTime}`);
+//console.log(`   ➤ Download: ${downloadSpeed}`);
+//console.log(`   ➤ Upload: ${uploadSpeed}`);
+//console.log(`   ➤ Packet Loss: ${packetLoss}`);
+//console.log(`   ➤ Packets Sent: ${packetsSent}`);
+//console.log(`   ➤ Packets Received: ${packetsReceived}`);
+
+console.log("📤 Sending to speedtest.js:", {
+    dlStatus, ulStatus, pingStatus, jitterStatus, packetLossStatus, packetsSent, packetsReceived
+});
+
+
+// Calculate Packet Loss
+let packetLossPercentage = packetsSent > 0 
+    ? (((packetsSent - packetsReceived) / packetsSent) * 100).toFixed(2) 
+    : "0.00";
+
+
+
+
+			// ✅ Send packet loss data to speedtest.js
+//console.log("Packets Sent:", packetsSent, "Received:", packetsReceived, "Lost:", packetsSent - packetsReceived);
+//console.log("Calculated Packet Loss:", packetLossPercentage + "%");		
+//    dlStatus: dlStatus || "N/A",
+//    ulStatus: ulStatus || "N/A",
+//    pingStatus: pingStatus || "N/A",
+//    jitterStatus: jitterStatus || "N/A",
+//packetLossStatus: packetsSent > 0 ? (((packetsSent - packetsReceived) / packetsSent) * 100).toFixed(2) + " %" : "0.00 %",
+//    packetsSent: packetsSent,
+//    packetsReceived: packetsReceived,
+//    packetsLost: packetsSent - packetsReceived
+//}));
+const numericPacketLoss = packetsSent > 0 ? (((packetsSent - packetsReceived) / packetsSent) * 100).toFixed(2) : "0.00";
+const displayPacketLoss = numericPacketLoss + " %";
+
+postMessage(JSON.stringify({
+    testState: 4,
+    dlStatus: dlStatus || "N/A",
+    ulStatus: ulStatus || "N/A",
+    pingStatus: pingStatus || "N/A",
+    jitterStatus: jitterStatus || "N/A",
+    packetLossStatus: numericPacketLoss, // ✅ This will go to DB correctly
+    packetLossDisplay: displayPacketLoss, // ✅ Optional: use this in UI only
+    packetsSent: packetsSent,
+    packetsReceived: packetsReceived,
+    packetsLost: packetsSent - packetsReceived
+}));
+
+
+
+			ws.close();
+                done();
+                }, 1000);
+
+
+            }
+        }, 50); // Sends a packet every 50ms
+    };
+
+    ws.onmessage = (event) => {
+        console.log(`📥 Packet Received: ${event.data}`);
+        packetsReceived++;
+    };
+
+    ws.onerror = (error) => {
+        console.error("❌ WebSocket Error:", error);
+    };
+
+    ws.onclose = () => {
+        console.log("❌ WebSocket Closed.");
+    };
+};
+
+
+
 		// run the tests
 		tverb(JSON.stringify(settings));
 		test_pointer = 0;
@@ -232,6 +348,16 @@ this.addEventListener("message", function(e) {
 						pingTest(runNextTest);
 					}
 					break;
+
+				case "L":
+        				{
+               					console.log("🟢 Packet Loss Test is now starting..."); 
+						test_pointer++;
+               					packetLossTest(runNextTest);
+					}
+
+					break;
+
 				case "_":
 					{
 						test_pointer++;
@@ -244,24 +370,34 @@ this.addEventListener("message", function(e) {
 		};
 		runNextTest();
 	}
-	if (params[0] === "abort") {
-		// abort command
-        if (testState >= 4) return;
-		tlog("manually aborted");
-		clearRequests(); // stop all xhr activity
-		runNextTest = null;
-		if (interval) clearInterval(interval); // clear timer if present
-		if (settings.telemetry_level > 1) sendTelemetry(function() {});
-		testState = 5; //set test as aborted
-		dlStatus = "";
-		ulStatus = "";
-		pingStatus = "";
-		jitterStatus = "";
+
+if (params[0] === "abort") {
+    if (testState >= 4) return;  // ✅ Prevent double-abort
+    tlog("manually aborted");
+    clearRequests();
+    runNextTest = null;
+    if (interval) clearInterval(interval);
+    if (settings.telemetry_level > 1) sendTelemetry(function() {});
+
+    testState = 5; // ✅ Mark test as aborted
+
+    // ❌ Do NOT reset results if test completed
+    if (testState < 4) {  
+        dlStatus = "";
+        ulStatus = "";
+        pingStatus = "";
+        jitterStatus = "";
         clientIp = "";
-		dlProgress = 0;
-		ulProgress = 0;
-		pingProgress = 0;
-	}
+    }
+
+    dlProgress = 0;
+    ulProgress = 0;
+    pingProgress = 0;
+}
+
+
+
+
 });
 // stops all XHR activity, aggressively
 function clearRequests() {
@@ -462,6 +598,7 @@ function ulTest(done) {
 					tverb("ul test stream started " + i + " " + delay);
 					let prevLoaded = 0; // number of bytes transmitted last time onprogress was called
 					let x = new XMLHttpRequest();
+					xhr = xhr || [];  // ← Add this line
 					xhr[i] = x;
 					let ie11workaround;
 					if (settings.forceIE11Workaround) ie11workaround = true;
@@ -589,6 +726,8 @@ function pingTest(done) {
 	tverb("pingTest");
 	if (ptCalled) return;
 	else ptCalled = true; // pingTest already called?
+	let totalPings = settings.count_ping;
+	let lostPings = 0;
 	const startT = new Date().getTime(); //when the test was started
 	let prevT = null; // last time a pong was received
 	let ping = 0.0; // current ping value
@@ -707,12 +846,34 @@ function sendTelemetry(done) {
 		rawIspInfo: typeof ispInfo === "object" ? ispInfo : ""
 	};
 	try {
+		
+		// Instead of relying on stale packetLossStatus, recalculate it now:
+		const numericPacketLoss = packetsSent > 0
+		    ? (((packetsSent - packetsReceived) / packetsSent) * 100).toFixed(2)
+		    : "0.00";
+
+		// Build FormData
+
+
+
+
 		const fd = new FormData();
 		fd.append("ispinfo", JSON.stringify(telemetryIspInfo));
 		fd.append("dl", dlStatus);
 		fd.append("ul", ulStatus);
 		fd.append("ping", pingStatus);
 		fd.append("jitter", jitterStatus);
+		//	fd.append("packet_loss", packetLossStatus);
+	//fd.append("packet_loss", packetsSent > 0 ? (((packetsSent - packetsReceived) / packetsSent) * 100).toFixed(2) : "0.00");
+//		fd.append("packet_loss", parseFloat(packetLossStatus));
+
+
+
+
+
+
+
+		fd.append("packet_loss", numericPacketLoss); // ✅ Send accurate value now
 		fd.append("log", settings.telemetry_level > 1 ? log : "");
 		fd.append("extra", settings.telemetry_extra);
 		xhr.send(fd);
